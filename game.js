@@ -475,6 +475,8 @@
     next = pick();
     G.state = "play";
     sfx.start();
+    runNumber++;
+    if (window.CashyLB) window.CashyLB.start("bubbles");
   }
 
   function gameOver(reason) {
@@ -495,6 +497,24 @@
       store.set("cashy-bubbles-records", JSON.stringify(G.records));
     }
     sfx.over();
+    submitRun();
+  }
+
+  // ───────────────────────── leaderboard ─────────────────────────
+  // Optional: https://api.cashy.world/client.js may be missing, and the game never waits on it.
+  let runNumber = 0;
+  function submitRun() {
+    const lb = window.CashyLB;
+    if (!lb) return;
+    const run = runNumber;
+    const shareText = (tag) => {
+      const tagText = tag ? ` (run #${tag})` : "";
+      return `I scored ${G.score.toLocaleString("en-GB")} in Cashy Bubbles 🪙${tagText}\n\nBuilt on @base 🔵\nCash in. NVDA out. @feeldotcash\n\nhttps://cashy.world/arcade/cashy-bubbles/`;
+    };
+    lb.finish("bubbles", { score: G.score, level: G.level, pops: G.pops }).then((result) => {
+      if (run !== runNumber || G.state === "play") return;
+      lb.show(result, { game: "bubbles", share: shareText, label: {} });
+    });
   }
 
   // ───────────────────────── shooting ─────────────────────────
